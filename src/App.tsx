@@ -46,7 +46,11 @@ const App: React.FC = () => {
   const [input, setInput] = useState('');
   const [symptoms, setSymptoms] = useState<Symptom[]>([]);
   const [isSpeechEnabled, setIsSpeechEnabled] = useState(true);
+  const [currentUtterance, setCurrentUtterance] = useState<SpeechSynthesisUtterance | null>(null);
+  const [lastSpokenText, setLastSpokenText] = useState<string>('');
+  const [pausedAt, setPausedAt] = useState<number>(0);
   const [dataset, setDataset] = useState<Disease[]>([]);
+  const [lastMessage, setLastMessage] = useState<string>('');
 
   useEffect(() => {
     const loadDatasets = async () => {
@@ -133,20 +137,58 @@ const App: React.FC = () => {
     loadDatasets();
   }, []);
 
-  const speakText = (text: string) => {
-    if (isSpeechEnabled && 'speechSynthesis' in window) {
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.rate = 1;
-      utterance.pitch = 1;
-      window.speechSynthesis.speak(utterance);
+  const toggleSpeech = () => {
+    const newSpeechState = !isSpeechEnabled;
+    setIsSpeechEnabled(newSpeechState);
+    
+    if (!newSpeechState) {
+      // Muting - pause speech and store position
+      window.speechSynthesis.pause();
+      if (window.speechSynthesis.speaking) {
+        setPausedAt(window.speechSynthesis.getPosition?.() || 0);
+      }
+    } else {
+      // Unmuting - resume from last position if there was speech
+      if (lastSpokenText && pausedAt > 0) {
+        const remainingText = lastSpokenText.slice(pausedAt);
+        if (remainingText.trim()) {
+          const resumeUtterance = new SpeechSynthesisUtterance(remainingText);
+          resumeUtterance.rate = 0.9;
+          resumeUtterance.pitch = 1;
+          window.speechSynthesis.cancel(); // Clear any pending speech
+          window.speechSynthesis.speak(resumeUtterance);
+        }
+      }
     }
   };
 
-  const toggleSpeech = () => {
-    setIsSpeechEnabled(!isSpeechEnabled);
-    if (window.speechSynthesis.speaking) {
-      window.speechSynthesis.cancel();
-    }
+  const speak = (text: string) => {
+    if (!window.speechSynthesis || !isSpeechEnabled) return;
+
+    // Clean up the text for speech
+    const cleanText = text
+      .replace(/[•\-]/g, '')
+      .replace(/\d+\./g, '')
+      .replace(/\s+/g, ' ')
+      .replace(/[^\w\s,.]/g, '')
+      .split(/[.•]/)
+      .filter(sentence => sentence.trim().length > 0)
+      .join('. ');
+
+    const utterance = new SpeechSynthesisUtterance(cleanText);
+    utterance.rate = 0.9;
+    utterance.pitch = 1;
+
+    // Track speech progress
+    utterance.onboundary = (event) => {
+      setPausedAt(event.charIndex);
+    };
+
+    // Store the utterance and text
+    setCurrentUtterance(utterance);
+    setLastSpokenText(cleanText);
+
+    window.speechSynthesis.speak(utterance);
   };
 
   const checkForEmergency = (text: string): boolean => {
@@ -261,23 +303,70 @@ const App: React.FC = () => {
       .slice(0, 2);
 
     if (matchingDiseases.length > 0) {
-      let response = `I understand you're experiencing ${symptom}. `;
-      response += `Based on this symptom, here are some possible conditions to be aware of:\n\n`;
+      const response = [
+        `• Symptom detected:\n    - ${symptom}`,
+        ``,
+        `• Possible conditions:`,
+        ``
+      ];
       
       matchingDiseases.forEach((disease, index) => {
-        response += `${index + 1}. ${disease.disease}\n`;
-        response += `• Description: ${disease.description}\n`;
-        if (disease.precautions && disease.precautions.length > 0) {
-          response += `• Recommended precautions:\n  - ${disease.precautions.join('\n  - ')}\n`;
+        response.push(`${index + 1}. ${disease.disease}`);
+        response.push(``);
+        
+        // Description
+        if (disease.description) {
+          response.push(`    • Description:`);
+          response.push(`        - ${disease.description.replace(/"/g, '')}`);
+          response.push(``);
         }
-        response += '\n';
+        
+        // Severity
+        response.push(`    • Severity:`);
+        response.push(`        - ${disease.severity || 'N/A'}/10`);
+        response.push(``);
+        
+        // Precautions
+        if (disease.precautions && disease.precautions.length > 0) {
+          response.push(`    • Precautions:`);
+          disease.precautions.forEach(precaution => {
+            response.push(`        - ${precaution}`);
+          });
+          response.push(``);
+        }
+        
+        // Related symptoms
+        const otherSymptoms = disease.symptoms
+          .filter(s => !disease.matchingSymptoms.includes(s))
+          .slice(0, 3);
+        if (otherSymptoms.length > 0) {
+          response.push(`    • Related symptoms:`);
+          otherSymptoms.forEach(symptom => {
+            response.push(`        - ${symptom.replace(/_/g, ' ')}`);
+          });
+          response.push(``);
+        }
       });
-
-      response += "Would you like to tell me about any other symptoms you're experiencing? This would help me provide better information. Also, remember that this is just for general guidance - please consult a healthcare professional for proper diagnosis.";
       
-      return response;
+      // Next steps
+      response.push(`• Next steps:`);
+      response.push(`    - Share any other symptoms you're experiencing`);
+      response.push(`    - Consult a healthcare professional for proper diagnosis`);
+      response.push(``);
+      
+      // Disclaimer
+      response.push(`• Disclaimer:`);
+      response.push(`    - This is general guidance only`);
+      response.push(`    - Not a substitute for professional medical advice`);
+      
+      return response.join('\n');
     } else {
-      return "I notice you might be describing a health concern, but I'm not quite sure I understand. Could you describe your symptoms differently? For example, you can say things like 'headache' or 'fever'.";
+      return [
+        `• Error:`,
+        `    - Symptom not recognized`,
+        `    - Please try describing it differently`,
+        `    - Example: headache, fever, cough`
+      ].join('\n');
     }
   };
 
@@ -286,7 +375,11 @@ const App: React.FC = () => {
     
     if (!input.trim()) return;
 
-    // Add user message
+    // Cancel any ongoing speech for new messages
+    window.speechSynthesis.cancel();
+    setPausedAt(0);
+    setLastSpokenText('');
+
     const userMessage = { role: 'user', content: input };
     setMessages(prev => [...prev, userMessage]);
 
@@ -294,46 +387,36 @@ const App: React.FC = () => {
     const botResponse = generateResponse(input);
     const botMessage = { role: 'assistant', content: botResponse };
     setMessages(prev => [...prev, botMessage]);
-
-    // Clear input
-    setInput('');
-
-    // Text-to-speech if enabled
+    
+    // Speak if enabled
     if (isSpeechEnabled) {
-      speakText(botResponse);
+      speak(botResponse);
     }
+
+    setInput('');
   };
+
+  // Clean up on component unmount
+  useEffect(() => {
+    return () => {
+      window.speechSynthesis.cancel();
+    };
+  }, []);
 
   return (
     <div className="app">
-      <header>
-        <h1>🤖 Medical Health Assistant</h1>
-        <nav>
-          <button 
-            className={currentPage === 'emergency' ? 'active' : ''} 
-            onClick={() => setCurrentPage('emergency')}
-          >
-            🚨 Emergency Detection
-          </button>
-          <button 
-            className={currentPage === 'tracking' ? 'active' : ''} 
-            onClick={() => setCurrentPage('tracking')}
-          >
-            📊 Symptom Tracking
-          </button>
-          <button 
-            className={currentPage === 'terms' ? 'active' : ''} 
-            onClick={() => setCurrentPage('terms')}
-          >
-            📚 Medical Terms
-          </button>
-          <button 
-            className={currentPage === 'chat' ? 'active' : ''} 
-            onClick={() => setCurrentPage('chat')}
-          >
-            💬 Chat
-          </button>
-        </nav>
+      <header className="flex items-center justify-between p-4 bg-white border-b">
+        <div className="flex items-center gap-2">
+          <Bot size={32} className="text-blue-500" />
+          <h1 className="text-xl font-bold">Medical Health Assistant</h1>
+        </div>
+        <button
+          onClick={toggleSpeech}
+          className="p-2 rounded-full hover:bg-gray-100"
+          title={isSpeechEnabled ? "Mute" : "Unmute"}
+        >
+          {isSpeechEnabled ? <Volume2 size={24} /> : <VolumeX size={24} />}
+        </button>
       </header>
 
       <main>
@@ -343,12 +426,6 @@ const App: React.FC = () => {
             <div className="flex items-center gap-2 p-4 border-b">
               <span className="text-2xl">🤖</span>
               <h1 className="text-2xl font-bold">Medical Health Assistant</h1>
-              <button 
-                onClick={() => setIsSpeechEnabled(!isSpeechEnabled)}
-                className="ml-auto p-2 rounded-full hover:bg-gray-100"
-              >
-                {isSpeechEnabled ? '🔊' : '🔇'}
-              </button>
             </div>
 
             {/* Chat Container */}

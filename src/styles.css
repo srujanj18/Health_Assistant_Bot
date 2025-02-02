@@ -81,4 +81,40 @@
   padding: 1rem;
   background: #f8f9fa;
   border-radius: 4px;
+}
+
+.message {
+  white-space: pre-wrap;
+  word-break: break-word;
+  line-height: 1.5;
+}
+
+.message .content {
+  display: block;
+  margin-bottom: 8px;
+}
+
+/* Add to your existing CSS */
+.app header button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.app header button:hover {
+  background-color: #f0f0f0;
+}
+
+.app header button svg {
+  color: #4a5568;
+}
+
+/* Optional: Add animation for icon transition */
+.app header button svg {
+  transition: transform 0.2s;
+}
+
+.app header button:hover svg {
+  transform: scale(1.1);
 } 
