@@ -84,9 +84,10 @@
 }
 
 .message {
-  white-space: pre-wrap;
-  word-break: break-word;
-  line-height: 1.5;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(66, 153, 225, 0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .message .content {
@@ -117,4 +118,36 @@
 
 .app header button:hover svg {
   transform: scale(1.1);
+}
+
+/* Add to your existing CSS */
+.app {
+  background-color: #f0f4f8;
+}
+
+/* Add glass effect for containers */
+.glass-effect {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Add background image to the app */
+.app {
+  background-image: url('https://example.com/path/to/medical-bg.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  opacity: 0.15;
+}
+
+/* Add animation for the bot icon */
+@keyframes float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+  100% { transform: translateY(0px); }
+}
+
+.fixed.bottom-4.right-4 img {
+  animation: float 3s ease-in-out infinite;
 } 
