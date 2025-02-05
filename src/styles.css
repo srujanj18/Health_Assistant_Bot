@@ -1,5 +1,14 @@
-/* Add these styles to your existing CSS */
+/* General App Styles */
+.app {
+  background-color: #ffffff; /* Fallback color */
+  background-image: url('src/medical-bot.jpg'); /* Background image */
+  background-size: cover; /* Cover the entire area */
+  background-position: center; /* Center the image */
+  opacity: 1; /* Full opacity */
+  animation: fadeIn 1s ease-in; /* Fade-in animation */
+}
 
+/* Navigation Styles */
 .app nav {
   display: flex;
   gap: 1rem;
@@ -10,8 +19,10 @@
   padding: 0.5rem 1rem;
   border: none;
   border-radius: 4px;
-  background: #f0f0f0;
+  background: #000000;
+  color: white;
   cursor: pointer;
+  transition: background-color 0.3s;
 }
 
 .app nav button.active {
@@ -19,8 +30,14 @@
   color: white;
 }
 
-/* Emergency Detection styles */
-.emergency-detection {
+.app nav button:hover {
+  background-color: #000000;
+}
+
+/* Emergency Detection Styles */
+.emergency-detection,
+.symptom-tracking,
+.medical-terms {
   max-width: 800px;
   margin: 0 auto;
   padding: 2rem;
@@ -38,34 +55,7 @@
   border-radius: 4px;
 }
 
-/* Symptom Tracking styles */
-.symptom-tracking {
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 2rem;
-}
-
-.symptom-form {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  margin-bottom: 2rem;
-}
-
-.symptom-entry {
-  background: #f8f9fa;
-  padding: 1rem;
-  margin: 1rem 0;
-  border-radius: 4px;
-}
-
-/* Medical Terms styles */
-.medical-terms {
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 2rem;
-}
-
+/* Search Bar Styles */
 .search-bar {
   margin-bottom: 2rem;
 }
@@ -76,6 +66,7 @@
   font-size: 1rem;
 }
 
+/* Term Entry Styles */
 .term-entry {
   margin: 1rem 0;
   padding: 1rem;
@@ -83,19 +74,162 @@
   border-radius: 4px;
 }
 
+/* Message Styles */
 .message {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(8px);
-  border: 1px solid rgba(66, 153, 225, 0.1);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  background: rgba(255, 255, 255, 0.9); /* Updated for consistency */
+  border-radius: 8px; /* Adjusted for consistency */
+  padding: 1rem; /* Adjusted for consistency */
+  margin-bottom: 1rem; /* Adjusted for spacing */
+  transition: all 0.3s; /* Smooth transition */
+  border-left: 4px solid #3b82f6; /* Blue border for message */
+  animation: slideIn 0.5s ease-in; /* Slide-in animation */
 }
 
-.message .content {
-  display: block;
-  margin-bottom: 8px;
+/* User and Bot Message Styles */
+.user-message {
+  background: rgba(210, 21, 21, 0.1); /* Light blue background */
+  border-left: 4px solid #000000; /* Darker blue border */
+  border-radius: 8px; /* Consistent border radius */
+  padding: 1rem; /* Consistent padding */
+  margin-bottom: 1rem; /* Consistent margin */
+  align-self: flex-end; /* Align user messages to the right */
 }
 
-/* Add to your existing CSS */
+.bot-message {
+  background: rgba(255, 255, 255, 0.9); /* White background */
+  border-left: 4px solid #00ff5e; /* Green border */
+  border-radius: 8px; /* Consistent border radius */
+  padding: 1rem; /* Consistent padding */
+  margin-bottom: 1rem; /* Consistent margin */
+  align-self: flex-start; /* Align bot messages to the left */
+}
+
+/* Input Styles */
+.input {
+  width: 100%; /* Full width */
+  padding: 1rem; /* Consistent padding */
+  border-radius: 8px; /* Consistent border radius */
+  border: 2px solid #e5e7eb; /* Light gray border */
+  transition: all 0.3s; /* Smooth transition */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Shadow for depth */
+}
+
+.input:focus {
+  border-color: #3b82f6; /* Blue border on focus */
+  outline: none; /* Remove default outline */
+}
+
+/* Button Styles */
+.button {
+  background: linear-gradient(90deg, #3b82f6, #2563eb); /* Gradient background */
+  color: white; /* White text */
+  padding: 0.5rem 1.5rem; /* Padding */
+  border-radius: 8px; /* Consistent border radius */
+  transition: all 0.3s; /* Smooth transition */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Shadow for depth */
+}
+
+.button:hover {
+  background: linear-gradient(90deg, #2563eb, #3b82f6); /* Reverse gradient on hover */
+}
+
+/* Chatbot Container Styles */
+.chatbot-container {
+  width: 100%; /* Full width */
+  height: calc(70vh - 80px); /* Full height minus the height of the input area */
+  padding: 1rem; /* Padding for the container */
+  background: rgba(255, 255, 255, 0.8); /* Slightly transparent background */
+  border-radius: 0; /* No rounded corners */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Shadow for depth */
+  overflow-y: auto; /* Allow scrolling if messages exceed height */
+  position: relative; /* Position relative for absolute children */
+}
+
+/* Fixed Input Container Styles */
+.fixed-input-container {
+  width: 100%; /* Full width */
+  position: fixed; /* Fixed position */
+  bottom: 0; /* Align to the bottom */
+  left: 0; /* Align to the left */
+  background: rgba(255, 255, 255, 0.9); /* Slightly transparent background */
+  padding: 1rem; /* Padding for spacing */
+  box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1); /* Shadow for depth */
+  z-index: 10; /* Ensure it is above other elements */
+}
+
+/* Animation Styles */
+@keyframes slideIn {
+  from {
+    transform: translateX(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Glass Effect for Containers */
+.glass-effect {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+/* Floating Animation for Bot Icon */
+@keyframes float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+  100% { transform: translateY(0px); }
+}
+
+.fixed.bottom-4.right-4 img {
+  animation: float 3s ease-in-out infinite;
+}
+
+/* Mute Button Styles */
+.mute-button {
+  position: fixed; /* Fixed position */
+  bottom: 1rem; /* Position from bottom */
+  right: 1rem; /* Position from right */
+  background: #3b82f6; /* Blue background */
+  color: white; /* White text */
+  padding: 0.75rem; /* Padding */
+  border-radius: 50%; /* Circular button */
+  transition: all 0.3s; /* Smooth transition */
+  z-index: 30; /* Ensure it is above other elements */
+}
+
+.mute-button:hover {
+  background: #2563eb; /* Darker blue on hover */
+}
+
+/* Voice Controls Styles */
+.voice-controls {
+  position: fixed; /* Fixed position */
+  bottom: 1rem; /* Position from bottom */
+  left: 1rem; /* Position from left */
+  background: rgba(255, 255, 255, 0.9); /* Light background */
+  padding: 0.75rem; /* Padding */
+  border-radius: 8px; /* Rounded corners */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Shadow for depth */
+  width: 12rem; /* Fixed width */
+  transform: scale(0.75); /* Scale down */
+  transform-origin: top left; /* Origin for scaling */
+}
+
+/* Header Button Styles */
 .app header button {
   background: none;
   border: none;
@@ -120,34 +254,12 @@
   transform: scale(1.1);
 }
 
-/* Add to your existing CSS */
-.app {
-  background-color: #f0f4f8;
+/* Ensure proper message display */
+.user-message, .bot-message {
+  max-width: 80%; /* Limit the width of messages */
+  word-wrap: break-word; /* Allow long words to break */
+  overflow-wrap: break-word; /* Ensure long text wraps correctly */
+  padding: 10px; /* Add padding for better readability */
+  border-radius: 8px; /* Rounded corners */
+  margin-bottom: 1rem; /* Space between messages */
 }
-
-/* Add glass effect for containers */
-.glass-effect {
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-/* Add background image to the app */
-.app {
-  background-image: url('https://example.com/path/to/medical-bg.jpg');
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  opacity: 0.15;
-}
-
-/* Add animation for the bot icon */
-@keyframes float {
-  0% { transform: translateY(0px); }
-  50% { transform: translateY(-10px); }
-  100% { transform: translateY(0px); }
-}
-
-.fixed.bottom-4.right-4 img {
-  animation: float 3s ease-in-out infinite;
-} 
